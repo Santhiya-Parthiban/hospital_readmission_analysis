@@ -1,0 +1,92 @@
+CREATE DATABASE hospital;
+USE hospital;
+SHOW tables;
+
+SELECT COUNT(DISTINCT `Facility Name`) AS unique_hospitals 
+FROM `hospital dataset`;
+
+SELECT State, 
+AVG(`Predicted Readmission Rate`) AS avg_readmission_rate
+FROM `hospital dataset`
+GROUP BY State;
+
+SELECT `Facility Name`, 
+  `Predicted Readmission Rate`
+FROM `hospital dataset`
+ORDER BY   `Predicted Readmission Rate` DESC;
+
+SELECT 
+  `Measure Name`, 
+  AVG(`Predicted Readmission Rate`) AS avg_readmission
+FROM   `hospital dataset`
+GROUP BY `Measure Name`
+ORDER BY   avg_readmission DESC;
+
+SELECT 
+    SUM(`Number of Readmissions`) / SUM(`Number of Discharges`) * 100 AS OverallReadmissionRate
+FROM `hospital dataset`;
+
+SELECT 
+  t1.State,
+  t1.`Measure Name`,
+  t1.avg_readmission
+FROM (
+    SELECT 
+      State, 
+      `Measure Name`, 
+      AVG(`Predicted Readmission Rate`) AS avg_readmission
+    FROM 
+      `hospital dataset`
+    GROUP BY 
+      State, `Measure Name`
+) AS t1
+JOIN (
+    SELECT 
+      State, 
+      MAX(avg_readmission) AS max_readmission
+    FROM (
+        SELECT 
+          State, 
+          `Measure Name`, 
+          AVG(`Predicted Readmission Rate`) AS avg_readmission
+        FROM 
+          `hospital dataset`
+        GROUP BY 
+          State, `Measure Name`
+    ) AS t2
+    GROUP BY State
+) AS t3
+ON t1.State = t3.State AND t1.avg_readmission = t3.max_readmission;
+
+SELECT 
+  t1.`Facility Name`,
+  t1.`Measure Name`,
+  t1.avg_readmission
+FROM (
+    SELECT 
+      `Facility Name`, 
+      `Measure Name`, 
+      AVG(`Predicted Readmission Rate`) AS avg_readmission
+    FROM 
+      `hospital dataset`
+    GROUP BY 
+      `Facility Name`, `Measure Name`
+) AS t1
+JOIN (
+    SELECT 
+      `Facility Name`, 
+      MAX(avg_readmission) AS max_readmission
+    FROM (
+        SELECT 
+          `Facility Name`, 
+          `Measure Name`, 
+          AVG(`Predicted Readmission Rate`) AS avg_readmission
+        FROM 
+          `hospital dataset`
+        GROUP BY 
+          `Facility Name`, `Measure Name`
+    ) AS t2
+    GROUP BY `Facility Name`
+) AS t3
+ON t1.`Facility Name` = t3.`Facility Name` AND t1.avg_readmission = t3.max_readmission;
+
